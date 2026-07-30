@@ -1,0 +1,12 @@
+{
+  "model": "openai/gpt-5.5",
+  "variant": "xhigh",
+  "agent": "",
+  "knowledge_root": "../../..",
+  "delete_session_after_run": true,
+  "profile_notes": [
+    "Write in clear magazine-style prose with a strong thesis and concrete source grounding.",
+    "Use the user's writing, plain-language, and teaching preferences: make the piece memorable, direct, and easy to return to later.",
+    "Do not publish, commit, or mutate source notes. The wrapper records metadata after the writing run succeeds."
+  ]
+}

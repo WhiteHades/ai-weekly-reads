@@ -1,6 +1,7 @@
 .DS_Store
 .env
 config/settings.json
+config/writer.json
 client_secret_*.json
 config/private/
 .obsidian/
@@ -13,6 +14,7 @@ __pycache__/
 venv/
 output/
 logs/
+target/
 knowledge_base/raw_transcripts/
 knowledge_base/resources/
 knowledge_base/weekly_books/

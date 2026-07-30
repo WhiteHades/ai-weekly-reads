@@ -42,3 +42,38 @@ jobs:
 
       - name: Audit knowledge-base shape
         run: python scripts/audit_knowledge_base.py
+
+      - name: Smoke test source usage ledger
+        run: |
+          tmpdir="$(mktemp -d)"
+          mkdir -p "$tmpdir/02_sources/theology" "$tmpdir/output/_metadata"
+          touch "$tmpdir/02_sources/theology/part-1.md" "$tmpdir/02_sources/tech.md"
+          python scripts/source_usage.py add \
+            --ledger "$tmpdir/output/_metadata/source_usage.json" \
+            --issue-id theology-2026-07-01 \
+            --kind daily \
+            --lane theology \
+            --title "Theology part 1" \
+            --published 2026-07-01 \
+            --output daily/2026-07-01-theology.md \
+            --source 02_sources/theology/part-1.md
+          python scripts/source_usage.py context \
+            --ledger "$tmpdir/output/_metadata/source_usage.json" \
+            --lane theology \
+            --source-root "$tmpdir/02_sources" \
+            --limit 5
+
+      - name: Smoke test OpenCode writer wrapper
+        run: |
+          python scripts/run_opencode_writer.py \
+            --dry-run \
+            --issue-id theology-2026-07-01 \
+            --kind daily \
+            --lane theology \
+            --title "Theology part 1" \
+            --published 2026-07-01 \
+            --output 99_meta/tools/ai-weekly-reads/daily/2026-07-01-theology.md \
+            --source 02_sources/theology/part-1.md
+
+      - name: Test Rust continuity helper
+        run: cargo test --manifest-path tools/continuity/Cargo.toml

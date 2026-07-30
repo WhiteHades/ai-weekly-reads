@@ -108,6 +108,8 @@ The summary and output stage is identical after that point. Both source types en
 - `output/kindle-digest-YYYY-MM-DD.md`: local weekly Markdown book
 - `output/kindle-digest-YYYY-MM-DD.epub`: Kindle-friendly EPUB when `pandoc` is installed
 - `output/substack/latest.md`: current Substack-ready post
+- `output/_metadata/source_usage.json`: local ledger of generated editions and exact source files used
+- `output/_metadata/continuity.json`: local per-lane continuity ledger for previous/next edition links
 - `knowledge_base/resources/`: local clean reading notes for Obsidian
 - `knowledge_base/raw_transcripts/`: local raw transcript/text archive
 
@@ -189,6 +191,7 @@ Start from the example files:
 
 ```bash
 cp config/settings.example.json config/settings.json
+cp config/writer.example.json config/writer.json
 cp .env.example .env
 cp inbox/links.example.txt inbox/links.txt
 ```
@@ -196,6 +199,7 @@ cp inbox/links.example.txt inbox/links.txt
 Local-only files:
 
 - `config/settings.json`: personal settings
+- `config/writer.json`: local OpenCode writer settings
 - `.env`: API keys and delivery settings
 - `inbox/links.txt`: one-off weekly links
 - `config/private/`: Gmail OAuth tokens and Substack browser profile
@@ -210,6 +214,13 @@ Important settings in `config/settings.json`:
 Per-source settings in `config/sources.json`:
 
 - `lookback_count`: how many recent items to inspect for that source before publication-date filtering
+
+OpenCode writer settings in `config/writer.json`:
+
+- `model`: OpenCode model ID; the example uses `openai/gpt-5.5`
+- `variant`: model variant/reasoning effort; the example uses `xhigh`
+- `knowledge_root`: path where OpenCode should run; from this submodule, `../../..` is the parent `Knowledge` repo
+- `delete_session_after_run`: deletes the newly created OpenCode session after a successful or failed run unless `--keep-session` is passed
 
 ## Services
 
@@ -302,7 +313,41 @@ Run local checks:
 .venv/bin/python -m py_compile scripts/*.py scripts/transcription/*.py
 .venv/bin/python scripts/check_repo_health.py
 .venv/bin/python scripts/audit_knowledge_base.py
+cargo test --manifest-path tools/continuity/Cargo.toml
 ```
+
+Track exact source files used by a generated edition:
+
+```bash
+.venv/bin/python scripts/source_usage.py add \
+  --issue-id 2026-07-09-theology \
+  --kind daily \
+  --lane theology \
+  --title "Theology part 2" \
+  --published 2026-07-09 \
+  --output daily/2026-07-09-theology.md \
+  --source 02_sources/theology/example.md
+
+.venv/bin/python scripts/source_usage.py context \
+  --lane theology \
+  --source-root ../../../02_sources
+```
+
+Run the OpenCode writer wrapper without calling a model:
+
+```bash
+.venv/bin/python scripts/run_opencode_writer.py \
+  --dry-run \
+  --issue-id 2026-07-09-theology \
+  --kind daily \
+  --lane theology \
+  --title "Theology part 2" \
+  --published 2026-07-09 \
+  --output 99_meta/tools/ai-weekly-reads/daily/2026-07-09-theology.md \
+  --source 02_sources/theology/example.md
+```
+
+Remove `--dry-run` to invoke OpenCode. The wrapper runs OpenCode from the parent `Knowledge` root, checks that the output file exists, records source usage in `output/_metadata/source_usage.json`, and then deletes the newly created OpenCode session unless `--keep-session` is passed.
 
 Normalize Obsidian metadata after hand edits or migrations:
 
